@@ -1,9 +1,10 @@
 {
-  "name": "example-package",
+  "name": "gomoru.su.copy-component-utilities",
   "version": "1.0.0",
-  "displayName": "",
-  "description": "",
+  "displayName": "Copy Component Utilities",
+  "description": "Copy component to clipboard for VRChat avatar creation.",
   "url" : "",
   "vpmDependencies" : {
+    "com.vrchat.base" : "^3.2.1"
   }
 }
