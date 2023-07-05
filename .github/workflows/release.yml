@@ -29,7 +29,6 @@ jobs:
         run: |
           echo "packageName=${{steps.packageName.outputs.prop}}" >> $GITHUB_ENV
           
-    
       - name: get version
         id: version
         uses: notiz-dev/github-action-json-property@7c8cf5cc36eb85d8d287a8086a39dac59628eb31
@@ -42,19 +41,20 @@ jobs:
           echo "zipFile=${{ env.packageName }}-${{ steps.version.outputs.prop }}".zip >> $GITHUB_ENV
           echo "unityPackage=${{ env.packageName }}-${{ steps.version.outputs.prop }}.unitypackage" >> $GITHUB_ENV
         
-      - name: Create Zip
-        uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
-        with:
-          type: "zip"
-          filename: "${{env.zipFile}}"
-
       - name: Move Files
         run: |
           shopt -s extglob
           mkdir -p "Packages/${{env.packageName}}"
-          mv !("Packages"|"${{env.zipFile}}"|"package.json") "Packages/${{env.packageName}}/"
-          cp "package.json" "Packages/${{env.packageName}}/package.json"
+          mv !("Packages") "Packages/${{env.packageName}}/"
           find "Packages/${{env.packageName}}/" -name \*.meta >> metaList
+
+      - name: Create Zip
+        uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
+        with:
+          type: "zip"
+          directory: "./Packages/${{env.packageName}}"
+          filename: "../../${{env.zipFile}}"
+          exclusions: '*.git*'
 
       - name: Create UnityPackage
         uses: pCYSl5EDgo/create-unitypackage@cfcd3cf0391a5ef1306342794866a9897c32af0b
@@ -69,4 +69,4 @@ jobs:
           files: |
             ${{env.zipFile}}
             ${{env.unityPackage}}
-            package.json
+            Packages/${{env.packageName}}/package.json
