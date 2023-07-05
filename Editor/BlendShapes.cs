@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -11,12 +12,10 @@ namespace gomoru.su.CopyComponentUtilities
         public static void Copy(MenuCommand menuCommand)
         {
             var target = menuCommand.context as SkinnedMeshRenderer;
-            
-            var json = JsonUtility.ToJson(new BlendShapesContainer() { BlendShapes = target.GetBlendShapes() });
-            GUIUtility.systemCopyBuffer = json;
+            GUIUtility.systemCopyBuffer = JsonConvert.SerializeObject(target.GetBlendShapes().ToDictionary(x => x.Key, x => x.Value));
         }
 
-        private static BlendShape[] _buffer;
+        private static Dictionary<string, float> _buffer;
 
 
         [MenuItem("CONTEXT/SkinnedMeshRenderer/Paste BlendShapes from Clipboard")]
@@ -24,12 +23,12 @@ namespace gomoru.su.CopyComponentUtilities
         {
             var buffer = _buffer;
             var target = menuCommand.context as SkinnedMeshRenderer;
-            var shapes = target.GetBlendShapes().Select((x, i) => (BlendSpape: x, Index: i)).ToDictionary(x => x.BlendSpape.Name, x => x.Index);
+            var shapes = target.GetBlendShapes().Select((x, i) => (BlendSpape: x, Index: i)).ToDictionary(x => x.BlendSpape.Key, x => x.Index);
             foreach(var x in buffer)
             {
-                if (shapes.TryGetValue(x.Name, out var index))
+                if (shapes.TryGetValue(x.Key, out var index))
                 {
-                    target.SetBlendShapeWeight(index, x.Weight);
+                    target.SetBlendShapeWeight(index, x.Value);
                 }
             }
         }
@@ -39,8 +38,7 @@ namespace gomoru.su.CopyComponentUtilities
         {
             try
             {
-                var container = JsonUtility.FromJson<BlendShapesContainer>(GUIUtility.systemCopyBuffer);
-                _buffer = container.BlendShapes;
+                _buffer = JsonConvert.DeserializeObject<Dictionary<string, float>>(GUIUtility.systemCopyBuffer);
                 return true;
             }
             catch
@@ -49,39 +47,19 @@ namespace gomoru.su.CopyComponentUtilities
             }
         }
 
-
-        [Serializable]
-        private struct BlendShapesContainer
-        {
-            public BlendShape[] BlendShapes;
-        }
-
-        [Serializable]
-        private struct BlendShape
-        {
-            [SerializeField] public string Name;
-            [SerializeField] public float Weight;
-
-            public BlendShape(string key, float value)
-            {
-                Name = key;
-                Weight = value;
-            }
-        }
-
-        private static BlendShape[] GetBlendShapes(this SkinnedMeshRenderer renderer)
+        private static KeyValuePair<string, float>[] GetBlendShapes(this SkinnedMeshRenderer renderer)
         {
             var mesh = renderer.sharedMesh;
             if (mesh == null)
                 return null;
 
             int count = mesh.blendShapeCount;
-            var array = new BlendShape[count];
+            var array = new KeyValuePair<string, float>[count];
             for(int i = 0; i < array.Length; i++)
             {
                 var name = mesh.GetBlendShapeName(i);
                 var value = renderer.GetBlendShapeWeight(i);
-                array[i] = new BlendShape(name, value);
+                array[i] = new KeyValuePair<string, float>(name, value);
             }
             return array;
         }
