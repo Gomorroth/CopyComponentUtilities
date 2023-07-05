@@ -1,0 +1,17 @@
+{
+    "name": "gomoru.su.copy-component-utilities",
+    "references": [
+        "GUID:3456780c4fb2d324ab9c633d6f1b0ddb"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
